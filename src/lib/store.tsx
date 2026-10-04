@@ -31,7 +31,7 @@ interface AppContextType {
   getCategoryTotal: (category: ExpenseCategory, vehicleId?: string | null, projectId?: string | null) => number;
   getMonthlyData: (vehicleId?: string | null, projectId?: string | null) => { month: string; total: number }[];
   getCategoryData: (vehicleId?: string | null, projectId?: string | null) => { category: ExpenseCategory; total: number; label: string }[];
-  getFleetStats: () => { kirada: number; musait: number; bakimda: number; rezerve: number; toplam: number };
+  getFleetStats: () => { kirada: number; musait: number; bakimda: number; rezerve: number; satildi: number; toplam: number };
   user: User | null;
   signOut: () => Promise<void>;
 }
@@ -448,7 +448,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       musait: vehicles.filter((v) => v.status === "musait").length,
       bakimda: vehicles.filter((v) => v.status === "bakimda").length,
       rezerve: vehicles.filter((v) => v.status === "rezerve").length,
-      toplam: vehicles.length,
+      satildi: vehicles.filter((v) => v.status === "satildi").length,
+      toplam: vehicles.filter((v) => v.status !== "satildi").length, // Active fleet size (excludes sold)
     };
   }, [vehicles]);
 

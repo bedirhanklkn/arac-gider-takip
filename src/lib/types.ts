@@ -1,6 +1,6 @@
 export type FuelType = "benzin" | "dizel" | "lpg" | "elektrik" | "hibrit";
 
-export type VehicleStatus = "kirada" | "musait" | "bakimda" | "rezerve";
+export type VehicleStatus = "kirada" | "musait" | "bakimda" | "rezerve" | "satildi";
 
 
 
@@ -93,6 +93,7 @@ export const VEHICLE_STATUS_LABELS: Record<VehicleStatus, string> = {
   musait: "Müsait",
   bakimda: "Bakımda",
   rezerve: "Rezerve",
+  satildi: "Satıldı",
 };
 
 export const VEHICLE_STATUS_COLORS: Record<VehicleStatus, { bg: string; text: string }> = {
@@ -100,4 +101,5 @@ export const VEHICLE_STATUS_COLORS: Record<VehicleStatus, { bg: string; text: st
   musait: { bg: "oklch(0.45 0.15 260 / 20%)", text: "oklch(0.7 0.18 260)" },
   bakimda: { bg: "oklch(0.5 0.15 60 / 20%)", text: "oklch(0.75 0.15 60)" },
   rezerve: { bg: "oklch(0.45 0.15 310 / 20%)", text: "oklch(0.7 0.18 310)" },
+  satildi: { bg: "oklch(0.35 0.1 20 / 20%)", text: "oklch(0.6 0.15 20)" },
 };

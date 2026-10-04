@@ -92,7 +92,7 @@ export function VehicleList() {
 
       {/* Status filter pills */}
       <div className="flex gap-1.5 px-1 py-1 flex-wrap">
-        {(["kirada", "musait", "bakimda", "rezerve"] as const).map((status) => {
+        {(["kirada", "musait", "bakimda", "rezerve", "satildi"] as const).map((status) => {
           const count = vehicles.filter((v) => v.status === status).length;
           if (count === 0) return null;
           const isActive = statusFilter === status;
