@@ -282,7 +282,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
 
     setProjects(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p));
-  }, []);
+
+    // Handle vehicle status changes based on project status
+    if (updates.status !== undefined) {
+      const project = projects.find(p => p.id === id);
+      const vehicleIds = updates.vehicleIds || project?.vehicleIds || [];
+      
+      if (vehicleIds.length > 0) {
+        const newVehicleStatus = (updates.status === 'tamamlandi' || updates.status === 'iptal') ? 'musait' : 'kirada';
+        
+        for (const vId of vehicleIds) {
+          await supabase.from('vehicles').update({ status: newVehicleStatus }).eq('id', vId);
+        }
+        
+        setVehicles(prev => prev.map(v => 
+          vehicleIds.includes(v.id) ? { ...v, status: newVehicleStatus } : v
+        ));
+      }
+    }
+  }, [projects]);
 
   const deleteProject = useCallback(async (id: string) => {
     const project = projects.find(p => p.id === id);
