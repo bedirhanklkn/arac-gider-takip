@@ -276,7 +276,10 @@ export function Dashboard() {
                     <XAxis dataKey="month" tick={{ fill: "oklch(0.6 0.02 260)", fontSize: 11 }} axisLine={false} tickLine={false} />
                     <YAxis tick={{ fill: "oklch(0.6 0.02 260)", fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v) => `₺${(v / 1000).toFixed(0)}k`} />
                     <Tooltip
-                      contentStyle={{ backgroundColor: "oklch(0.17 0.015 260)", border: "1px solid oklch(0.25 0.02 260)", borderRadius: "8px", color: "oklch(0.97 0.005 260)", fontSize: "13px" }}
+                      cursor={{ fill: 'rgba(255, 255, 255, 0.05)' }}
+                      contentStyle={{ backgroundColor: "rgba(17, 24, 39, 0.95)", border: "1px solid rgba(75, 85, 99, 0.4)", borderRadius: "8px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.5)", fontSize: "13px" }}
+                      itemStyle={{ color: "#f3f4f6", fontWeight: 600 }}
+                      labelStyle={{ color: "#9ca3af", fontWeight: 500, marginBottom: "4px" }}
                       formatter={(value: any) => [formatCurrency(value as number), "Toplam"]}
                     />
                     <Bar dataKey="total" radius={[6, 6, 0, 0]} maxBarSize={40}>
@@ -312,7 +315,8 @@ export function Dashboard() {
                         ))}
                       </Pie>
                       <Tooltip
-                        contentStyle={{ backgroundColor: "oklch(0.17 0.015 260)", border: "1px solid oklch(0.25 0.02 260)", borderRadius: "8px", color: "oklch(0.97 0.005 260)", fontSize: "13px" }}
+                        contentStyle={{ backgroundColor: "rgba(17, 24, 39, 0.95)", border: "1px solid rgba(75, 85, 99, 0.4)", borderRadius: "8px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.5)", fontSize: "13px" }}
+                        itemStyle={{ color: "#f3f4f6", fontWeight: 600 }}
                         formatter={(value: any) => [formatCurrency(value as number), ""]}
                       />
                     </PieChart>
