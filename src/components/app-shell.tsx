@@ -17,7 +17,7 @@ import {
   FUEL_TYPE_LABELS,
 } from "@/lib/types";
 import Login from "./login";
-import { LogOut, User as UserIcon, Home, ArrowLeft } from "lucide-react";
+import { LogOut, User as UserIcon, Home, ArrowLeft, Menu } from "lucide-react";
 
 function AppContent() {
   const { selectedVehicleId, selectedProjectId, setSelectedVehicleId, setSelectedProjectId, vehicles, projects, getFleetStats, loading, user, signOut } = useApp();
@@ -129,8 +129,8 @@ function AppContent() {
         <header className="h-16 border-b border-border/40 bg-card/20 backdrop-blur-sm flex items-center justify-between px-4 lg:px-6 flex-shrink-0">
           <div className="flex items-center gap-3">
             <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-              <SheetTrigger render={<Button variant="ghost" size="sm" className="lg:hidden h-8 w-8 p-0" />}>
-                <span className="text-xs">Menü</span>
+              <SheetTrigger render={<Button variant="ghost" size="sm" className="lg:hidden h-9 w-9 p-0 mr-2" />}>
+                <Menu className="w-5 h-5 text-muted-foreground" />
               </SheetTrigger>
               <SheetContent side="left" className="w-[320px] p-0 bg-card">
                 <div className="p-5 pb-3">
@@ -211,11 +211,11 @@ function AppContent() {
                 <ArrowLeft className="w-4 h-4" />
               </button>
             )}
-            <div>
-              <h2 className="text-sm font-semibold flex items-center gap-2">
+            <div className="flex flex-col min-w-0">
+              <h2 className="text-sm font-semibold flex items-center gap-1.5 sm:gap-2 truncate">
                 {selectedVehicle && (
                   <Badge
-                    className="text-[9px] px-1.5 py-0 h-4 border-0"
+                    className="text-[9px] px-1.5 py-0 h-4 border-0 hidden sm:inline-flex"
                     style={{
                       backgroundColor: VEHICLE_STATUS_COLORS[selectedVehicle.status].bg,
                       color: VEHICLE_STATUS_COLORS[selectedVehicle.status].text,
@@ -226,7 +226,7 @@ function AppContent() {
                 )}
                 {selectedProject && (
                   <Badge
-                    className="text-[9px] px-1.5 py-0 h-4 border-0"
+                    className="text-[9px] px-1.5 py-0 h-4 border-0 hidden sm:inline-flex"
                     style={{
                       backgroundColor: selectedProject.status === "aktif" ? "oklch(0.45 0.15 145 / 20%)" : "oklch(0.5 0.2 25 / 20%)",
                       color: selectedProject.status === "aktif" ? "oklch(0.7 0.18 145)" : "oklch(0.7 0.2 25)",
@@ -235,9 +235,9 @@ function AppContent() {
                     {selectedProject.status === "aktif" ? "Aktif" : "Bitti"}
                   </Badge>
                 )}
-                {pageTitle}
+                <span className="truncate">{pageTitle}</span>
               </h2>
-              <p className="text-[11px] text-muted-foreground">{pageSubtitle}</p>
+              <p className="text-[10px] sm:text-[11px] text-muted-foreground truncate">{pageSubtitle}</p>
             </div>
           </div>
 
@@ -249,8 +249,8 @@ function AppContent() {
         </header>
 
         {/* Content Area */}
-        <div className="flex-1 overflow-y-auto">
-          <div className="p-4 lg:p-6 max-w-7xl mx-auto w-full">
+        <div className="flex-1 overflow-x-hidden overflow-y-auto">
+          <div className="p-3 sm:p-4 lg:p-6 max-w-7xl mx-auto w-full">
             <Tabs defaultValue="dashboard" className="space-y-4">
               <TabsList className="bg-card/50 border border-border/30 p-1">
                 <TabsTrigger value="dashboard" className="text-xs data-[state=active]:bg-primary/15 data-[state=active]:text-primary data-[state=active]:shadow-sm gap-1.5">

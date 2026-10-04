@@ -94,10 +94,10 @@ export function ExpenseTable() {
             placeholder="Ara..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-48 h-8 text-sm bg-input/50"
+            className="w-full sm:w-48 h-8 text-sm bg-input/50"
           />
           <Select value={categoryFilter} onValueChange={(val) => setCategoryFilter(val as string)}>
-            <SelectTrigger className="w-[180px] h-8 text-sm bg-input/40 border-border/40 hover:bg-input/60 transition-colors">
+            <SelectTrigger className="w-full sm:w-[180px] h-8 text-sm bg-input/40 border-border/40 hover:bg-input/60 transition-colors">
               <SelectValue placeholder="Kategori">
                 {categoryFilter === "all" ? (
                   <span className="flex items-center gap-2">

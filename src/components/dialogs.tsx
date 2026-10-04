@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import * as XLSX from "xlsx";
-import { Search, ArrowLeft, Trash, Edit2 } from "lucide-react";
+import { Search, ArrowLeft, Trash, Edit2, Plus, Download } from "lucide-react";
 import { useApp } from "@/lib/store";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription
@@ -80,8 +80,9 @@ export function AddExpenseDialog() {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger render={<Button className="gap-2 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20" />}>
-        Gider Ekle
+      <DialogTrigger render={<Button className="gap-2 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 px-3 sm:px-4" />}>
+        <Plus className="w-4 h-4" />
+        <span className="hidden sm:inline">Gider Ekle</span>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[480px] p-0 gap-0 overflow-hidden bg-card border-border/50">
         {step === 1 ? (
@@ -498,8 +499,9 @@ export function AddProjectDialog() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button variant="outline" className="gap-2 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10 hover:text-emerald-300" />}>
-        Yeni Proje
+      <DialogTrigger render={<Button variant="outline" className="gap-2 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10 hover:text-emerald-300 px-3 sm:px-4" />}>
+        <Plus className="w-4 h-4" />
+        <span className="hidden sm:inline">Yeni Proje</span>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[480px] bg-card border-border/50">
         <DialogHeader>
@@ -665,8 +667,9 @@ export function ExportExpensesDialog() {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger render={<Button variant="outline" className="gap-2 border-primary/30 text-primary hover:bg-primary/10" />}>
-        <span className="text-lg">📊</span> Excel Raporu Al
+      <DialogTrigger render={<Button variant="outline" className="gap-2 border-primary/30 text-primary hover:bg-primary/10 px-3 sm:px-4" />}>
+        <Download className="w-4 h-4" />
+        <span className="hidden sm:inline">Excel İndir</span>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[480px] p-0 gap-0 overflow-hidden bg-card border-border/50">
         {step === 1 ? (
