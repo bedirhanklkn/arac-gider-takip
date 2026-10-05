@@ -98,7 +98,8 @@ export function ProjectList() {
             </div>
           </button>
         );
-      })}
+      })
+      )}
     </div>
   );
 }
