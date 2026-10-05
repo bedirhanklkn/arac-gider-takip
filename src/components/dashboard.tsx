@@ -415,12 +415,12 @@ export function Dashboard() {
             Son Gider İşlemleri
           </CardTitle>
           <Dialog open={exportOpen} onOpenChange={setExportOpen}>
-            <DialogTrigger asChild>
+            <DialogTrigger render={
               <Button variant="outline" size="sm" className="gap-2 border-primary/30 text-primary hover:bg-primary/10">
                 <Download className="w-4 h-4" />
                 <span className="hidden sm:inline">Excel İndir</span>
               </Button>
-            </DialogTrigger>
+            } />
             <DialogContent className="sm:max-w-[420px]">
               <DialogHeader>
                 <DialogTitle>Excel Raporu İndir</DialogTitle>
