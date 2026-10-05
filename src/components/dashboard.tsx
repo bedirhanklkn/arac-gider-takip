@@ -1,9 +1,15 @@
 "use client";
 
+import { useState } from "react";
 import { useApp } from "@/lib/store";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { X, Plus, Trash, Edit2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
+import { X, Plus, Trash, Edit2, Download } from "lucide-react";
+import * as XLSX from "xlsx";
 import { EXPENSE_CATEGORY_COLORS, VEHICLE_STATUS_LABELS, VEHICLE_STATUS_COLORS } from "@/lib/types";
 import { AddVehicleToProjectDialog, EditProjectDialog } from "@/components/dialogs";
 import { Bar, BarChart, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, Pie, PieChart } from "recharts";
@@ -29,6 +35,54 @@ export function Dashboard() {
     vehicles, expenses, projects, getTotalExpense, getFilteredExpenses,
     getCategoryData, getMonthlyData, selectedVehicleId, selectedProjectId, getFleetStats, removeVehicleFromProject, deleteProject
   } = useApp();
+
+  const [exportOpen, setExportOpen] = useState(false);
+  const [exportStart, setExportStart] = useState("");
+  const [exportEnd, setExportEnd] = useState("");
+
+  const handleExport = (e: React.FormEvent) => {
+    e.preventDefault();
+    let filtered = getFilteredExpenses(selectedVehicleId, selectedProjectId);
+
+    if (exportStart) filtered = filtered.filter(exp => new Date(exp.date) >= new Date(exportStart));
+    if (exportEnd) filtered = filtered.filter(exp => new Date(exp.date) <= new Date(exportEnd));
+
+    if (filtered.length === 0) {
+      alert("Bu tarihler arasında gider bulunamadı!");
+      return;
+    }
+
+    const dataToExport = filtered.map(exp => {
+      const v = vehicles.find(v => v.id === exp.vehicleId);
+      const p = projects.find(p => p.id === exp.projectId);
+      return {
+        "Tarih": new Date(exp.date).toLocaleDateString("tr-TR"),
+        "Plaka": v?.plate || "Silinmiş Araç",
+        "Marka/Model": v ? `${v.brand} ${v.model}` : "-",
+        "Kurum / Proje": p?.projectName || "-",
+        "Kategori": exp.category,
+        "Tutar (TL)": exp.amount,
+        "Açıklama": exp.description || "-"
+      };
+    });
+
+    const ws = XLSX.utils.json_to_sheet(dataToExport);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Gider Raporu");
+    
+    ws['!cols'] = [{ wch: 15 }, { wch: 15 }, { wch: 30 }, { wch: 25 }, { wch: 20 }, { wch: 15 }, { wch: 50 }];
+
+    let filename = "Gider_Raporu";
+    if (selectedProjectId) {
+      const p = projects.find(p => p.id === selectedProjectId);
+      if (p) filename = p.projectName;
+    }
+    
+    XLSX.writeFile(wb, `${filename}_${new Date().toISOString().split('T')[0]}.xlsx`);
+    setExportOpen(false);
+    setExportStart("");
+    setExportEnd("");
+  };
 
   const totalExpense = getTotalExpense(selectedVehicleId, selectedProjectId);
   const categoryData = getCategoryData(selectedVehicleId, selectedProjectId);
@@ -356,10 +410,41 @@ export function Dashboard() {
 
       {/* Recent Expenses */}
       <Card className="border-border/50 bg-card/50 backdrop-blur-sm animate-fade-in" style={{ animationDelay: "700ms" }}>
-        <CardHeader className="pb-2">
+        <CardHeader className="pb-2 flex flex-row items-center justify-between">
           <CardTitle className="text-base font-semibold flex items-center gap-2">
             Son Gider İşlemleri
           </CardTitle>
+          <Dialog open={exportOpen} onOpenChange={setExportOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-2 border-primary/30 text-primary hover:bg-primary/10">
+                <Download className="w-4 h-4" />
+                <span className="hidden sm:inline">Excel İndir</span>
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[420px]">
+              <DialogHeader>
+                <DialogTitle>Excel Raporu İndir</DialogTitle>
+                <DialogDescription>
+                  {selectedProjectId ? "Bu projenin giderlerini indirmek için tarih aralığı seçin." : "Tüm giderleri indirmek için tarih aralığı seçin."}
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleExport} className="space-y-4 mt-2">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label>Başlangıç</Label>
+                    <Input type="date" value={exportStart} onChange={e => setExportStart(e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Bitiş</Label>
+                    <Input type="date" value={exportEnd} onChange={e => setExportEnd(e.target.value)} />
+                  </div>
+                </div>
+                <Button type="submit" className="w-full bg-primary hover:bg-primary/90">
+                  Raporu İndir
+                </Button>
+              </form>
+            </DialogContent>
+          </Dialog>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
@@ -381,14 +466,21 @@ export function Dashboard() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">{expense.description}</p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-xs text-muted-foreground flex flex-wrap items-center gap-x-2 gap-y-1">
                         {vehicle && !selectedVehicleId && (
-                          <span className="inline-flex items-center gap-1 mr-2">
+                          <span className="inline-flex items-center gap-1">
                             <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: vehicle.color }} />
                             {vehicle.plate} · {vehicle.brand} {vehicle.model}
                           </span>
                         )}
-                        {new Date(expense.date).toLocaleDateString("tr-TR", { day: "numeric", month: "short", year: "numeric" })}
+                        {expense.projectId && (
+                          <span className="text-emerald-500 font-medium">
+                            · {projects.find((p) => p.id === expense.projectId)?.projectName || "Silinmiş Proje"}
+                          </span>
+                        )}
+                        <span>
+                          · {new Date(expense.date).toLocaleDateString("tr-TR", { day: "numeric", month: "short", year: "numeric" })}
+                        </span>
                       </p>
                     </div>
                     <div className="text-right flex-shrink-0">
