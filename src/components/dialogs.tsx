@@ -190,7 +190,7 @@ export function AddExpenseDialog() {
 
               <div className="space-y-2">
                 <Label htmlFor="project" className="text-sm font-medium">Kurum / Proje</Label>
-                <Select value={projectId} onValueChange={(v) => setProjectId(v)}>
+                <Select value={projectId} onValueChange={(v) => setProjectId(v || "none")}>
                   <SelectTrigger id="project" className="bg-input/50">
                     <SelectValue placeholder="Proje seçin" />
                   </SelectTrigger>
@@ -1107,7 +1107,7 @@ export function EditExpenseDialog({ children, expense }: { children: React.React
     if (!amount || !date) return;
     
     await updateExpense(expense.id, {
-      projectId: projectId === "none" ? null : projectId,
+      projectId: projectId === "none" ? undefined : projectId,
       category, amount: parseFloat(amount), date,
       description: description || EXPENSE_CATEGORY_LABELS[category],
       km: km ? parseInt(km) : undefined,
@@ -1146,7 +1146,7 @@ export function EditExpenseDialog({ children, expense }: { children: React.React
 
           <div className="space-y-2">
             <Label htmlFor="edit-project" className="text-sm font-medium">Kurum / Proje</Label>
-            <Select value={projectId} onValueChange={(v) => setProjectId(v)}>
+            <Select value={projectId} onValueChange={(v) => setProjectId(v || "none")}>
               <SelectTrigger id="edit-project" className="bg-input/50">
                 <SelectValue placeholder="Proje seçin" />
               </SelectTrigger>
