@@ -56,7 +56,7 @@ export interface ProjectRecord {
 export const EXPENSE_CATEGORY_LABELS: Record<ExpenseCategory, string> = {
   yakit: "Yakıt",
   bakim: "Bakım / Servis",
-  sigorta: "Sigorta",
+  sigorta: "Sigorta / Kasko",
   vergi: "MTV / Vergi",
   lastik: "Lastik",
   yikama: "Yıkama / Temizlik",

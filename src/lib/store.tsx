@@ -17,6 +17,7 @@ interface AppContextType {
   updateVehicle: (id: string, vehicle: Partial<Vehicle>) => Promise<void>;
   deleteVehicle: (id: string) => Promise<void>;
   addExpense: (expense: Omit<Expense, "id">) => Promise<void>;
+  updateExpense: (id: string, expense: Partial<Expense>) => Promise<void>;
   deleteExpense: (id: string) => Promise<void>;
   addProject: (project: Omit<ProjectRecord, "id">) => Promise<void>;
   updateProject: (id: string, project: Partial<ProjectRecord>) => Promise<void>;
@@ -203,16 +204,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const addExpense = useCallback(async (expense: Omit<Expense, "id">) => {
-    // Auto-detect project: find an active project that contains this vehicle
-    let projectId = expense.projectId;
-    if (!projectId) {
-      const activeProject = projects.find(p => 
-        p.status === "aktif" && p.vehicleIds.includes(expense.vehicleId)
-      );
-      if (activeProject) {
-        projectId = activeProject.id;
-      }
-    }
+    const projectId = expense.projectId;
 
     const { data, error } = await supabase.from('expenses').insert([{
       vehicle_id: expense.vehicleId, project_id: projectId || null,
@@ -235,6 +227,30 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }]);
     }
   }, [projects]);
+
+  const updateExpense = useCallback(async (id: string, expenseUpdate: Partial<Expense>) => {
+    // Map frontend keys to backend columns
+    const updates: any = {};
+    if (expenseUpdate.vehicleId !== undefined) updates.vehicle_id = expenseUpdate.vehicleId;
+    if (expenseUpdate.projectId !== undefined) updates.project_id = expenseUpdate.projectId || null;
+    if (expenseUpdate.category !== undefined) updates.category = expenseUpdate.category;
+    if (expenseUpdate.amount !== undefined) updates.amount = expenseUpdate.amount;
+    if (expenseUpdate.date !== undefined) updates.date = expenseUpdate.date;
+    if (expenseUpdate.description !== undefined) updates.description = expenseUpdate.description;
+    if (expenseUpdate.km !== undefined) updates.km = expenseUpdate.km;
+    if (expenseUpdate.liters !== undefined) updates.liters = expenseUpdate.liters;
+    if (expenseUpdate.pricePerLiter !== undefined) updates.price_per_liter = expenseUpdate.pricePerLiter;
+
+    const { error } = await supabase.from('expenses').update(updates).eq('id', id);
+    if (error) {
+      console.error("Error updating expense:", error.message, error);
+      return;
+    }
+
+    setExpenses((prev) =>
+      prev.map((e) => (e.id === id ? { ...e, ...expenseUpdate } : e))
+    );
+  }, []);
 
   const deleteExpense = useCallback(async (id: string) => {
     const { error } = await supabase.from('expenses').delete().eq('id', id);
@@ -401,11 +417,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       months.forEach((m) => monthMap.set(m, 0));
 
+      const currentYear = new Date().getFullYear();
+
       filtered.forEach((e) => {
         const date = new Date(e.date);
-        const monthIndex = date.getMonth();
-        const monthName = months[monthIndex];
-        monthMap.set(monthName, (monthMap.get(monthName) || 0) + e.amount);
+        if (date.getFullYear() === currentYear) {
+          const monthIndex = date.getMonth();
+          const monthName = months[monthIndex];
+          monthMap.set(monthName, (monthMap.get(monthName) || 0) + e.amount);
+        }
       });
 
       return Array.from(monthMap.entries()).map(([month, total]) => ({
@@ -421,7 +441,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const filtered = getFilteredExpenses(vehicleId, projectId);
 
       const categoryLabels: Record<ExpenseCategory, string> = {
-        yakit: "Yakıt", bakim: "Bakım / Servis", sigorta: "Sigorta", vergi: "MTV / Vergi",
+        yakit: "Yakıt", bakim: "Bakım / Servis", sigorta: "Sigorta / Kasko", vergi: "MTV / Vergi",
         lastik: "Lastik", yikama: "Yıkama / Temizlik", hasar: "Hasar / Kaza",
         ceza: "Trafik Cezası", muayene: "Muayene", diger: "Diğer",
       };
@@ -458,7 +478,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       value={{
         vehicles, expenses, projects, selectedVehicleId, selectedProjectId, loading,
         addVehicle, addVehicles, updateVehicle, deleteVehicle,
-        addExpense, deleteExpense, addProject, updateProject, deleteProject, removeVehicleFromProject, addVehicleToProject,
+        addExpense, updateExpense, deleteExpense, addProject, updateProject, deleteProject, removeVehicleFromProject, addVehicleToProject,
         setSelectedVehicleId: handleSetSelectedVehicleId,
         setSelectedProjectId: handleSetSelectedProjectId,
         getVehicleExpenses, getFilteredExpenses,

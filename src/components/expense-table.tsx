@@ -36,7 +36,7 @@ function formatCurrency(amount: number): string {
 }
 
 export function ExpenseTable() {
-  const { expenses, vehicles, selectedVehicleId, selectedProjectId, deleteExpense, getFilteredExpenses } = useApp();
+  const { expenses, vehicles, projects, selectedVehicleId, selectedProjectId, deleteExpense, getFilteredExpenses } = useApp();
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<"date" | "amount">("date");
@@ -60,13 +60,29 @@ export function ExpenseTable() {
     );
   }
 
+  // Create a map to track insertion order for tie-breaking
+  const originalIndexMap = new Map(expenses.map((e, i) => [e.id, i]));
+
   // Sort
   filtered.sort((a, b) => {
     if (sortBy === "date") {
       const diff = new Date(a.date).getTime() - new Date(b.date).getTime();
+      if (diff === 0) {
+        // Tie-breaker: insertion order (newest first when desc)
+        const idxA = originalIndexMap.get(a.id) ?? 0;
+        const idxB = originalIndexMap.get(b.id) ?? 0;
+        const indexDiff = idxA - idxB;
+        return sortDir === "desc" ? -indexDiff : indexDiff;
+      }
       return sortDir === "desc" ? -diff : diff;
     } else {
       const diff = a.amount - b.amount;
+      if (diff === 0) {
+        const idxA = originalIndexMap.get(a.id) ?? 0;
+        const idxB = originalIndexMap.get(b.id) ?? 0;
+        const indexDiff = idxA - idxB;
+        return sortDir === "desc" ? -indexDiff : indexDiff;
+      }
       return sortDir === "desc" ? -diff : diff;
     }
   });
@@ -217,11 +233,20 @@ export function ExpenseTable() {
                     <TableCell>
                       <div>
                         <p className="text-sm">{expense.description}</p>
-                        {expense.liters && (
-                          <p className="text-[10px] text-muted-foreground">
-                            {expense.liters} lt · ₺{expense.pricePerLiter?.toFixed(2)}/lt
-                          </p>
-                        )}
+                        <div className="flex flex-col gap-0.5 mt-0.5">
+                          {(() => {
+                            const project = projects.find(p => p.id === expense.projectId);
+                            if (project) {
+                              return <p className="text-[10px] text-muted-foreground/90 font-medium">Kurum: {project.projectName}</p>;
+                            }
+                            return null;
+                          })()}
+                          {expense.liters && (
+                            <p className="text-[10px] text-muted-foreground">
+                              {expense.liters} lt · ₺{expense.pricePerLiter?.toFixed(2)}/lt
+                            </p>
+                          )}
+                        </div>
                       </div>
                     </TableCell>
                     <TableCell>

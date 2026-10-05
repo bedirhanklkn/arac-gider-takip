@@ -24,6 +24,7 @@ export function AddExpenseDialog() {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<1 | 2>(1);
   const [vehicleId, setVehicleId] = useState(selectedVehicleId || "");
+  const [projectId, setProjectId] = useState<string>("none");
   const [searchQuery, setSearchQuery] = useState("");
   const [category, setCategory] = useState<ExpenseCategory>("yakit");
   const [amount, setAmount] = useState("");
@@ -40,18 +41,24 @@ export function AddExpenseDialog() {
       setStep(1);
       setSearchQuery("");
       setVehicleId(selectedVehicleId || "");
+      setProjectId("none");
     } else {
       if (selectedVehicleId) {
         setVehicleId(selectedVehicleId);
         setStep(2);
+        const activeProj = projects.find(p => p.status === "aktif" && p.vehicleIds.includes(selectedVehicleId));
+        setProjectId(activeProj ? activeProj.id : "none");
       } else {
         setStep(1);
+        setProjectId("none");
       }
     }
   };
 
   const handleSelectVehicle = (id: string) => {
     setVehicleId(id);
+    const activeProj = projects.find(p => p.status === "aktif" && p.vehicleIds.includes(id));
+    setProjectId(activeProj ? activeProj.id : "none");
     setStep(2);
   };
 
@@ -59,7 +66,8 @@ export function AddExpenseDialog() {
     e.preventDefault();
     if (!vehicleId || !amount || !date) return;
     addExpense({
-      vehicleId, category, amount: parseFloat(amount), date,
+      vehicleId, projectId: projectId === "none" ? undefined : projectId,
+      category, amount: parseFloat(amount), date,
       description: description || EXPENSE_CATEGORY_LABELS[category],
       km: km ? parseInt(km) : undefined,
       liters: liters ? parseFloat(liters) : undefined,
@@ -174,6 +182,23 @@ export function AddExpenseDialog() {
                     {(Object.keys(EXPENSE_CATEGORY_LABELS) as ExpenseCategory[]).map((cat) => (
                       <SelectItem key={cat} value={cat}>
                         <span className="flex items-center gap-2">{EXPENSE_CATEGORY_LABELS[cat]}</span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="project" className="text-sm font-medium">Kurum / Proje</Label>
+                <Select value={projectId} onValueChange={(v) => setProjectId(v)}>
+                  <SelectTrigger id="project" className="bg-input/50">
+                    <SelectValue placeholder="Proje seçin" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Bağımsız (Proje Dışı)</SelectItem>
+                    {projects.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        {p.projectName} {p.status === "aktif" ? "(Aktif)" : "(Bitti)"}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -1064,10 +1089,11 @@ export function EditVehicleDialog({ children, vehicle }: { children: React.React
 }
 
 export function EditExpenseDialog({ children, expense }: { children: React.ReactNode, expense: Expense }) {
-  const { vehicles, addExpense, deleteExpense } = useApp();
+  const { vehicles, updateExpense } = useApp();
   const [open, setOpen] = useState(false);
   const [category, setCategory] = useState<ExpenseCategory>(expense.category);
   const [amount, setAmount] = useState(expense.amount.toString());
+  const [projectId, setProjectId] = useState<string>(expense.projectId || "none");
   const [date, setDate] = useState(expense.date.split('T')[0]);
   const [description, setDescription] = useState(expense.description);
   const [km, setKm] = useState(expense.km?.toString() || "");
@@ -1079,11 +1105,9 @@ export function EditExpenseDialog({ children, expense }: { children: React.React
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!amount || !date) return;
-    // Delete old and insert new (Supabase doesn't have a clean update for all fields easily)
-    await deleteExpense(expense.id);
-    await addExpense({
-      vehicleId: expense.vehicleId,
-      projectId: expense.projectId,
+    
+    await updateExpense(expense.id, {
+      projectId: projectId === "none" ? null : projectId,
       category, amount: parseFloat(amount), date,
       description: description || EXPENSE_CATEGORY_LABELS[category],
       km: km ? parseInt(km) : undefined,
@@ -1115,6 +1139,23 @@ export function EditExpenseDialog({ children, expense }: { children: React.React
               <SelectContent>
                 {(Object.keys(EXPENSE_CATEGORY_LABELS) as ExpenseCategory[]).map((cat) => (
                   <SelectItem key={cat} value={cat}>{EXPENSE_CATEGORY_LABELS[cat]}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="edit-project" className="text-sm font-medium">Kurum / Proje</Label>
+            <Select value={projectId} onValueChange={(v) => setProjectId(v)}>
+              <SelectTrigger id="edit-project" className="bg-input/50">
+                <SelectValue placeholder="Proje seçin" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Bağımsız (Proje Dışı)</SelectItem>
+                {useApp().projects.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    {p.projectName} {p.status === "aktif" ? "(Aktif)" : "(Bitti)"}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>

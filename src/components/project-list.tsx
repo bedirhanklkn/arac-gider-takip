@@ -1,7 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import { useApp } from "@/lib/store";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("tr-TR", {
@@ -14,6 +17,11 @@ function formatCurrency(amount: number): string {
 
 export function ProjectList() {
   const { projects, selectedProjectId, setSelectedProjectId, getTotalExpense } = useApp();
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredProjects = projects.filter((p) => 
+    p.projectName.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   if (projects.length === 0) {
     return (
@@ -25,7 +33,24 @@ export function ProjectList() {
 
   return (
     <div className="space-y-2 mt-2">
-      {projects.map((project, i) => {
+      <div className="relative px-1 pt-1 pb-2">
+        <div className="absolute inset-y-0 left-3 top-1 flex items-center pointer-events-none">
+          <Search className="h-3.5 w-3.5 text-muted-foreground" />
+        </div>
+        <Input
+          placeholder="Proje ara..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="pl-8 h-8 text-xs bg-card/30 border-border/40 placeholder:text-muted-foreground/70"
+        />
+      </div>
+
+      {filteredProjects.length === 0 ? (
+        <div className="text-center py-6 text-xs text-muted-foreground">
+          Aradığınız kriterlere uygun proje bulunamadı.
+        </div>
+      ) : (
+        filteredProjects.map((project, i) => {
         const projectTotal = getTotalExpense(null, project.id);
         const isSelected = selectedProjectId === project.id;
         
