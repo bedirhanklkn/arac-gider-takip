@@ -294,7 +294,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const { error } = await supabase.from('projects').update(dbUpdates).eq('id', id);
     if (error) {
       console.error("Error updating project:", error.message, error);
-      return;
+      throw error;
     }
 
     setProjects(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p));

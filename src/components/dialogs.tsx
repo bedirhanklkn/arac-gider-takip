@@ -902,23 +902,26 @@ export function EditProjectDialog({ children, project }: { children: React.React
   const [open, setOpen] = useState(false);
   const [projectName, setProjectName] = useState(project.projectName);
   const [projectDetails, setProjectDetails] = useState(project.projectDetails || "");
-  const [startDate, setStartDate] = useState(project.startDate);
-  const [endDate, setEndDate] = useState(project.endDate);
+  const [startDate, setStartDate] = useState(project.startDate?.split('T')[0] || "");
+  const [endDate, setEndDate] = useState(project.endDate?.split('T')[0] || "");
   const [status, setStatus] = useState<string>(project.status);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!projectName || !startDate || !endDate) return;
 
-    await updateProject(project.id, {
-      projectName,
-      projectDetails,
-      startDate,
-      endDate,
-      status: status as "aktif" | "tamamlandi" | "iptal"
-    });
-
-    setOpen(false);
+    try {
+      await updateProject(project.id, {
+        projectName,
+        projectDetails,
+        startDate,
+        endDate,
+        status: status as "aktif" | "tamamlandi" | "iptal"
+      });
+      setOpen(false);
+    } catch (err: any) {
+      alert("Hata oluştu: " + err.message);
+    }
   };
 
   return (
@@ -1089,7 +1092,7 @@ export function EditVehicleDialog({ children, vehicle }: { children: React.React
 }
 
 export function EditExpenseDialog({ children, expense }: { children: React.ReactNode, expense: Expense }) {
-  const { vehicles, updateExpense } = useApp();
+  const { vehicles, projects, updateExpense } = useApp();
   const [open, setOpen] = useState(false);
   const [category, setCategory] = useState<ExpenseCategory>(expense.category);
   const [amount, setAmount] = useState(expense.amount.toString());
@@ -1152,7 +1155,7 @@ export function EditExpenseDialog({ children, expense }: { children: React.React
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">Bağımsız (Proje Dışı)</SelectItem>
-                {useApp().projects.map((p) => (
+                {projects.map((p) => (
                   <SelectItem key={p.id} value={p.id}>
                     {p.projectName} {p.status === "aktif" ? "(Aktif)" : "(Bitti)"}
                   </SelectItem>
