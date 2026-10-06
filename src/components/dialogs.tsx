@@ -902,13 +902,30 @@ export function EditProjectDialog({ children, project }: { children: React.React
   const [open, setOpen] = useState(false);
   const [projectName, setProjectName] = useState(project.projectName);
   const [projectDetails, setProjectDetails] = useState(project.projectDetails || "");
-  const [startDate, setStartDate] = useState(project.startDate?.split('T')[0] || "");
-  const [endDate, setEndDate] = useState(project.endDate?.split('T')[0] || "");
+  // Helper to ensure YYYY-MM-DD format
+  const formatForDateInput = (dateStr?: string) => {
+    if (!dateStr) return "";
+    const clean = dateStr.split('T')[0];
+    // If it's already YYYY-MM-DD, return it
+    if (clean.includes('-') && clean.split('-')[0].length === 4) return clean;
+    // If it's DD.MM.YYYY, convert to YYYY-MM-DD
+    if (clean.includes('.')) {
+      const parts = clean.split('.');
+      if (parts.length === 3) return `${parts[2]}-${parts[1]}-${parts[0]}`;
+    }
+    return clean;
+  };
+
+  const [startDate, setStartDate] = useState(formatForDateInput(project.startDate));
+  const [endDate, setEndDate] = useState(formatForDateInput(project.endDate));
   const [status, setStatus] = useState<string>(project.status);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!projectName || !startDate || !endDate) return;
+    if (!projectName || !startDate || !endDate) {
+      alert(`Boş alan var! Ad: ${!!projectName}, Başlangıç: ${!!startDate}, Bitiş: ${!!endDate}`);
+      return;
+    }
 
     try {
       await updateProject(project.id, {
@@ -919,6 +936,7 @@ export function EditProjectDialog({ children, project }: { children: React.React
         status: status as "aktif" | "tamamlandi" | "iptal"
       });
       setOpen(false);
+      alert("Proje güncellendi!");
     } catch (err: any) {
       alert("Hata oluştu: " + err.message);
     }
