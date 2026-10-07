@@ -10,8 +10,8 @@ function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("tr-TR", {
     style: "currency",
     currency: "TRY",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 3,
   }).format(amount);
 }
 
@@ -19,9 +19,9 @@ export function ProjectList() {
   const { projects, selectedProjectId, setSelectedProjectId, getTotalExpense } = useApp();
   const [searchQuery, setSearchQuery] = useState("");
 
-  const filteredProjects = projects.filter((p) => 
-    p.projectName.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredProjects = projects
+    .filter((p) => p.projectName.toLowerCase().includes(searchQuery.toLowerCase()))
+    .sort((a, b) => a.projectName.localeCompare(b.projectName, 'tr'));
 
   if (projects.length === 0) {
     return (
@@ -82,7 +82,7 @@ export function ProjectList() {
                       color: project.status === "aktif" ? "oklch(0.7 0.18 145)" : "oklch(0.7 0.2 25)",
                     }}
                   >
-                    {project.status === "aktif" ? "Aktif" : "Bitti"}
+                    {project.status === "aktif" ? "Aktif" : project.status === "iptal" ? "İptal" : "Bitti"}
                   </Badge>
                 </div>
                 <div className="flex items-center gap-2 text-[10px] text-muted-foreground">

@@ -6,4 +6,8 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 console.log("Supabase URL:", supabaseUrl);
 console.log("Supabase Key:", supabaseAnonKey ? "GİRİLMİŞ" : "EKSİK");
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    storage: typeof window !== 'undefined' ? window.sessionStorage : undefined
+  }
+})

@@ -18,8 +18,8 @@ function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("tr-TR", {
     style: "currency",
     currency: "TRY",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 3,
   }).format(amount);
 }
 
@@ -44,8 +44,16 @@ export function Dashboard() {
     e.preventDefault();
     let filtered = getFilteredExpenses(selectedVehicleId, selectedProjectId);
 
-    if (exportStart) filtered = filtered.filter(exp => new Date(exp.date) >= new Date(exportStart));
-    if (exportEnd) filtered = filtered.filter(exp => new Date(exp.date) <= new Date(exportEnd));
+    if (exportStart) {
+      const startObj = new Date(exportStart);
+      startObj.setHours(0, 0, 0, 0);
+      filtered = filtered.filter(exp => new Date(exp.date).getTime() >= startObj.getTime());
+    }
+    if (exportEnd) {
+      const endObj = new Date(exportEnd);
+      endObj.setHours(23, 59, 59, 999);
+      filtered = filtered.filter(exp => new Date(exp.date).getTime() <= endObj.getTime());
+    }
 
     if (filtered.length === 0) {
       alert("Bu tarihler arasında gider bulunamadı!");
@@ -91,11 +99,13 @@ export function Dashboard() {
 
   const filteredExpenses = getFilteredExpenses(selectedVehicleId, selectedProjectId);
 
-  const displayedProjects = selectedProjectId
+  let displayedProjects = selectedProjectId
     ? projects.filter((p) => p.id === selectedProjectId)
     : selectedVehicleId
       ? projects.filter((p) => p.vehicleIds.includes(selectedVehicleId) && p.status === "aktif")
       : projects.filter((p) => p.status === "aktif");
+
+  displayedProjects = displayedProjects.sort((a, b) => a.projectName.localeCompare(b.projectName, 'tr'));
 
   const stats = [
     {
@@ -261,14 +271,15 @@ export function Dashboard() {
                         >
                           {daysLeft <= 0 ? "Bugün bitiyor" : `${daysLeft} gün kaldı`}
                         </Badge>
-                        <div className="flex items-center gap-1" onClick={(e) => e.preventDefault()}>
+                        <div className="flex items-center gap-1">
                           <EditProjectDialog project={project}>
-                            <button className="p-1.5 rounded-md text-muted-foreground hover:bg-primary/20 hover:text-primary transition-colors" title="Projeyi Düzenle">
+                            <button onClick={(e) => e.preventDefault()} className="p-1.5 rounded-md text-muted-foreground hover:bg-primary/20 hover:text-primary transition-colors" title="Projeyi Düzenle">
                               <Edit2 className="w-4 h-4" />
                             </button>
                           </EditProjectDialog>
                           <button 
                             onClick={(e) => {
+                              e.preventDefault();
                               if (confirm(`'${project.projectName}' projesini silmek istediğinize emin misiniz? Bu işlem geri alınamaz.`)) {
                                 deleteProject(project.id);
                               }
@@ -285,11 +296,13 @@ export function Dashboard() {
                     <div className="p-3 sm:p-4 pt-0 border-t border-border/30 bg-background/50">
                       <div className="flex items-center justify-between mb-3 mt-2">
                         <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Projeye Ait Araçlar</span>
-                        <AddVehicleToProjectDialog projectId={project.id}>
-                          <button className="flex items-center gap-1 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 rounded px-2.5 py-1 transition-colors shadow-sm font-medium text-[11px]" title="Araç Ekle">
-                            <Plus className="w-3.5 h-3.5" /> Ekle
-                          </button>
-                        </AddVehicleToProjectDialog>
+                        {project.status === "aktif" && (
+                          <AddVehicleToProjectDialog projectId={project.id}>
+                            <button className="flex items-center gap-1 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 rounded px-2.5 py-1 transition-colors shadow-sm font-medium text-[11px]" title="Araç Ekle">
+                              <Plus className="w-3.5 h-3.5" /> Ekle
+                            </button>
+                          </AddVehicleToProjectDialog>
+                        )}
                       </div>
                       <div className="flex flex-wrap gap-1.5 max-h-48 overflow-y-auto custom-scrollbar pr-1">
                         {project.vehicleIds.map(vId => {
@@ -391,7 +404,7 @@ export function Dashboard() {
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
-                <div className="flex-1 space-y-2 overflow-y-auto max-h-[260px]">
+                <div className="flex-1 space-y-2 overflow-y-auto max-h-[260px] custom-scrollbar pr-1">
                   {categoryData.map((cat, i) => (
                     <div key={cat.category} className="flex items-center gap-2 text-sm">
                       <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }} />

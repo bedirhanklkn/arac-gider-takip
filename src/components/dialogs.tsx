@@ -82,7 +82,7 @@ export function AddExpenseDialog() {
     if (!searchQuery) return true;
     const q = searchQuery.toLowerCase();
     return v.plate.toLowerCase().includes(q) || v.brand.toLowerCase().includes(q) || v.model.toLowerCase().includes(q);
-  });
+  }).sort((a, b) => a.plate.localeCompare(b.plate, 'tr-TR', { numeric: true }));
 
   const selectedVehicle = vehicles.find(v => v.id === vehicleId);
 
@@ -192,7 +192,9 @@ export function AddExpenseDialog() {
                 <Label htmlFor="project" className="text-sm font-medium">Kurum / Proje</Label>
                 <Select value={projectId} onValueChange={(v) => setProjectId(v || "none")}>
                   <SelectTrigger id="project" className="bg-input/50">
-                    <SelectValue placeholder="Proje seçin" />
+                    <SelectValue placeholder="Proje seçin">
+                      {projectId === "none" ? "Bağımsız (Proje Dışı)" : projects.find(p => p.id === projectId)?.projectName || "Proje seçin"}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Bağımsız (Proje Dışı)</SelectItem>
@@ -485,7 +487,7 @@ export function AddProjectDialog() {
     if (!searchQuery) return true;
     const q = searchQuery.toLowerCase();
     return v.plate.toLowerCase().includes(q) || v.brand.toLowerCase().includes(q) || v.model.toLowerCase().includes(q);
-  });
+  }).sort((a, b) => a.plate.localeCompare(b.plate, 'tr-TR', { numeric: true }));
 
   const days = startDate && endDate
     ? Math.max(1, Math.ceil((new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24)))
@@ -825,7 +827,7 @@ export function AddVehicleToProjectDialog({ children, projectId }: { children: R
     if (!searchQuery) return true;
     const q = searchQuery.toLowerCase();
     return v.plate.toLowerCase().includes(q) || v.brand.toLowerCase().includes(q) || v.model.toLowerCase().includes(q);
-  });
+  }).sort((a, b) => a.plate.localeCompare(b.plate, 'tr-TR', { numeric: true }));
 
   const project = projects.find(p => p.id === projectId);
 
@@ -927,6 +929,11 @@ export function EditProjectDialog({ children, project }: { children: React.React
       return;
     }
 
+    if (new Date(endDate) < new Date(startDate)) {
+      alert("Hata: Bitiş tarihi, başlangıç tarihinden önce olamaz!");
+      return;
+    }
+
     try {
       await updateProject(project.id, {
         projectName,
@@ -936,7 +943,6 @@ export function EditProjectDialog({ children, project }: { children: React.React
         status: status as "aktif" | "tamamlandi" | "iptal"
       });
       setOpen(false);
-      alert("Proje güncellendi!");
     } catch (err: any) {
       alert("Hata oluştu: " + err.message);
     }
@@ -1169,7 +1175,9 @@ export function EditExpenseDialog({ children, expense }: { children: React.React
             <Label htmlFor="edit-project" className="text-sm font-medium">Kurum / Proje</Label>
             <Select value={projectId} onValueChange={(v) => setProjectId(v || "none")}>
               <SelectTrigger id="edit-project" className="bg-input/50">
-                <SelectValue placeholder="Proje seçin" />
+                <SelectValue placeholder="Proje seçin">
+                  {projectId === "none" ? "Bağımsız (Proje Dışı)" : projects.find(p => p.id === projectId)?.projectName || "Proje seçin"}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">Bağımsız (Proje Dışı)</SelectItem>

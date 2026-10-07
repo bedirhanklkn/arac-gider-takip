@@ -14,8 +14,8 @@ function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("tr-TR", {
     style: "currency",
     currency: "TRY",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 3,
   }).format(amount);
 }
 
@@ -48,7 +48,7 @@ export function VehicleList() {
       v.model.toLocaleLowerCase('tr-TR').includes(lowerQuery) ||
       (v.displayRenter?.toLocaleLowerCase('tr-TR').includes(lowerQuery) ?? false)
     );
-  });
+  }).sort((a, b) => a.plate.localeCompare(b.plate, 'tr-TR', { numeric: true }));
 
   return (
     <div className="space-y-2">

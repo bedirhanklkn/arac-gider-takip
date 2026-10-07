@@ -12,12 +12,7 @@ export default function Login() {
     }
     return "";
   });
-  const [password, setPassword] = useState(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("filo_saved_password") || "";
-    }
-    return "";
-  });
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [rememberMe, setRememberMe] = useState(() => {
@@ -38,10 +33,8 @@ export default function Login() {
     } else {
       if (rememberMe) {
         localStorage.setItem("filo_saved_email", email);
-        localStorage.setItem("filo_saved_password", password);
       } else {
         localStorage.removeItem("filo_saved_email");
-        localStorage.removeItem("filo_saved_password");
       }
     }
     

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useApp } from "@/lib/store";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -24,14 +24,14 @@ import {
 import type { ExpenseCategory } from "@/lib/types";
 import { EXPENSE_CATEGORY_LABELS, EXPENSE_CATEGORY_COLORS } from "@/lib/types";
 import { EditExpenseDialog } from "@/components/dialogs";
-import { Edit2, Trash } from "lucide-react";
+import { Edit2, Trash, ChevronLeft, ChevronRight } from "lucide-react";
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("tr-TR", {
     style: "currency",
     currency: "TRY",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 3,
   }).format(amount);
 }
 
@@ -41,6 +41,12 @@ export function ExpenseTable() {
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<"date" | "amount">("date");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, categoryFilter, sortBy, sortDir, selectedVehicleId, selectedProjectId]);
 
   let filtered = getFilteredExpenses(selectedVehicleId, selectedProjectId);
 
@@ -88,6 +94,9 @@ export function ExpenseTable() {
   });
 
   const totalFiltered = filtered.reduce((sum, e) => sum + e.amount, 0);
+
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const paginatedData = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
     <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
@@ -194,7 +203,7 @@ export function ExpenseTable() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filtered.map((expense, i) => {
+              {paginatedData.map((expense, i) => {
                 const vehicle = vehicles.find((v) => v.id === expense.vehicleId);
                 return (
                   <TableRow
@@ -308,6 +317,57 @@ export function ExpenseTable() {
             </TableBody>
           </Table>
         </div>
+
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between pt-4 mt-2">
+            <div className="text-[11px] text-muted-foreground font-medium">
+              Toplam <span className="text-foreground">{filtered.length}</span> kayıttan <span className="text-foreground">{(currentPage - 1) * itemsPerPage + 1}</span> - <span className="text-foreground">{Math.min(currentPage * itemsPerPage, filtered.length)}</span> arası
+            </div>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="h-7 w-7 p-0"
+                title="Önceki Sayfa"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <div className="flex items-center gap-1 px-1">
+                {Array.from({ length: totalPages }).map((_, i) => {
+                  const page = i + 1;
+                  if (page === 1 || page === totalPages || (page >= currentPage - 1 && page <= currentPage + 1)) {
+                    return (
+                      <Button
+                        key={page}
+                        variant={currentPage === page ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setCurrentPage(page)}
+                        className={`h-7 w-7 p-0 text-xs ${currentPage === page ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+                      >
+                        {page}
+                      </Button>
+                    );
+                  } else if (page === currentPage - 2 || page === currentPage + 2) {
+                    return <span key={page} className="text-muted-foreground text-xs px-0.5">...</span>;
+                  }
+                  return null;
+                })}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="h-7 w-7 p-0"
+                title="Sonraki Sayfa"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

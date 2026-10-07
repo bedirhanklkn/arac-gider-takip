@@ -225,8 +225,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
         category: e.category, amount: e.amount, date: e.date, description: e.description,
         km: e.km, liters: e.liters, pricePerLiter: e.price_per_liter
       }]);
+
+      if (e.km && e.km > 0) {
+        updateVehicle(e.vehicle_id, { currentKm: e.km });
+      }
     }
-  }, [projects]);
+  }, [projects, updateVehicle]);
 
   const updateExpense = useCallback(async (id: string, expenseUpdate: Partial<Expense>) => {
     // Map frontend keys to backend columns
@@ -250,7 +254,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setExpenses((prev) =>
       prev.map((e) => (e.id === id ? { ...e, ...expenseUpdate } : e))
     );
-  }, []);
+
+    if (expenseUpdate.km && expenseUpdate.km > 0 && expenseUpdate.vehicleId) {
+      updateVehicle(expenseUpdate.vehicleId, { currentKm: expenseUpdate.km });
+    } else if (expenseUpdate.km && expenseUpdate.km > 0) {
+      // Find the vehicle ID from the existing expense if it wasn't provided in the update
+      setExpenses((prev) => {
+        const existingExpense = prev.find(e => e.id === id);
+        if (existingExpense && existingExpense.vehicleId) {
+          updateVehicle(existingExpense.vehicleId, { currentKm: expenseUpdate.km });
+        }
+        return prev;
+      });
+    }
+  }, [updateVehicle]);
 
   const deleteExpense = useCallback(async (id: string) => {
     const { error } = await supabase.from('expenses').delete().eq('id', id);
@@ -300,9 +317,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setProjects(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p));
 
     // Handle vehicle status changes based on project status
-    if (updates.status !== undefined) {
-      const project = projects.find(p => p.id === id);
-      const vehicleIds = updates.vehicleIds || project?.vehicleIds || [];
+    const project = projects.find(p => p.id === id);
+    if (updates.status !== undefined && project && updates.status !== project.status) {
+      const vehicleIds = updates.vehicleIds || project.vehicleIds || [];
       
       if (vehicleIds.length > 0) {
         const newVehicleStatus = (updates.status === 'tamamlandi' || updates.status === 'iptal') ? 'musait' : 'kirada';
